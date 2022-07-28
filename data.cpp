@@ -10,7 +10,7 @@ data::data(QObject *parent) : QObject(parent)
   panjang_buffer_waveform= 10 * 10240 ;
   panjang_buffer_spektrum = MAX_FFT_POINT;
   Temp = new init_setting_k;
-   //QFile input("/home/cloud/OVM/setting.ini");
+    //QFile input("/home/cloud/OVM/setting.ini");
     QFile input("/home/fh/runServer/setup/setting.ini");
     if(input.exists())
     {
@@ -61,6 +61,7 @@ data::data(QObject *parent) : QObject(parent)
     for(int i =0; i<JUM_KANAL;i++)
     {
         cnt_ch[i] = 0;
+        cnt_cha[i]=0;
     }
         init_time();
 }
@@ -81,12 +82,22 @@ void data::free_memory()
     {
         free(data_save[i]);
         free(data_get[i]);
+        free(data_prekirim[i]);
     }
+    for (i=0; i< 2560; i++){
+    free(data_kirim1[i]);
+    free(data_kirim2[i]);
+    free(data_kirim3[i]);
+    free(data_kirim4[i]);
+    free(data_kirim5[i]);
+    free(data_kirim6[i]);
+    free(data_kirim7[i]);
+    free(data_kirim8[i]);}
 }
 void data::cek_settings(init_setting_k *Temp)
 {
-    QString pth = "/home/cloud/OVM/setup/setting.ini";
-    //QString pth = "/home/fh/runServer/setting.ini";
+   // QString pth = "/home/cloud/OVM/setup/setting.ini";
+    QString pth = "/home/fh/runServer/setting.ini";
     QSettings settings(pth, QSettings::IniFormat);
     tmp.dir_ini = settings.value("Dir_ini").toString();
     tmp.modulIP1k = settings.value("IP1").toString();
@@ -129,14 +140,14 @@ void data::flagclient()
 
 void data::init_setting(init_setting_k *Temp)
 {
-    QString pth = "/home/cloud/OVM/setup/setting.ini";
-    //QString pth = "/home/fh/runServer/setting.ini";
+    //QString pth = "/home/cloud/OVM/setup/setting.ini";
+    QString pth = "/home/fh/runServer/setting.ini";
     QSettings settings(pth, QSettings::IniFormat);
     qDebug()<<"tulis";
 
     memset((char *) Temp, 0, sizeof (struct init_setting_k));
-    tmp.dir_DB = QString::fromUtf8("/home/cloud/OVM/setup/ovm_dbe");
-      //tmp.dir_DB = QString::fromUtf8("/home/fh/runServer/ovm_dbe");
+    //tmp.dir_DB = QString::fromUtf8("/home/cloud/OVM/setup/ovm_dbe");
+      tmp.dir_DB = QString::fromUtf8("/home/fh/runServer/ovm_dbe");
     //tmp.dir_ini = QString::fromUtf8("/home/fh/runServer/setting.ini");
     tmp.modulIP1k = QString::fromUtf8("192.168.0.101");
     tmp.modulIP2k = QString::fromUtf8("192.168.0.102");
@@ -183,6 +194,25 @@ void data::set_memory()
         memset( (char *) data_save[i], 0, ((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)*sizeof(float)));
         data_get[i] = (float *) malloc(MAX_FFT_POINT * sizeof(float));
         memset( (char *) data_get[i], 0, MAX_FFT_POINT * sizeof(float));
+
+        data_prekirim[i] = (float *) malloc((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)* sizeof(float));
+        memset( (char *) data_prekirim[i], 0, (((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10) * sizeof(float));
+        data_kirim1[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim1[i], 0, 10000 * sizeof(float));
+        data_kirim2[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim2[i], 0, 10000 * sizeof(float));
+        data_kirim3[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim3[i], 0, 10000 * sizeof(float));
+        data_kirim4[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim4[i], 0, 10000 * sizeof(float));
+        data_kirim5[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim5[i], 0, 10000 * sizeof(float));
+        data_kirim6[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim6[i], 0, 10000 * sizeof(float));
+        data_kirim7[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim7[i], 0, 10000 * sizeof(float));
+        data_kirim8[i] = (float *) malloc(10000 * sizeof(float));
+        memset( (char *) data_kirim8[i], 0, 10000 * sizeof(float));
     }
 }
 
@@ -249,6 +279,7 @@ void data::readyReady()
          int datayangdikirim=datakebutuhan;
          //int datayangdiharapkan=2048;
          penuh = (cnt_ch[i_kanal]%datasyarat)+1;
+         //penuh2 = (cnt_cha[i_kanal]>2560;
 //         kirimclient = (cnt_ch[i_kanal]%datayangdikirim)+1;
 
          int no_module = -1;
@@ -266,194 +297,66 @@ void data::readyReady()
              {
                  for (i=0; i<BESAR_PAKET_F; i++)
                    {
-                     // data_send[i]= p_data[i];
                       cnt_ch[i_kanal]++;
                       data_save[i_kanal][cnt_ch[i_kanal]] = p_data[i];
-                     // data_client[(counterCH1-1)*BESAR_PAKET_F+i]=p_data[i];
                     }
-
-                if(i_kanal==0)
-                {
-                    counterK1++;
-                    if(counterK1<11)
-                    {
-                        for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal1[(counterK1-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
+                 for (i=0; i<BESAR_PAKET_F; i++)
+                   {
+                      cnt_cha[i_kanal]++;
+                      data_prekirim[i_kanal][cnt_cha[i_kanal]] = p_data[i];
                     }
-                }
-                else if(i_kanal==1)
-                {
-                    counterK2++;
-                    if(counterK2<11)
-                    {
-                        for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal2[(counterK2-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==2)
-                {
-                    counterK3++;
-                    if(counterK3<11)
-                    {   for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal3[(counterK3-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==3)
-                {
-                    counterK4++;
-                    if(counterK4<11)
-                    {   for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal4[(counterK4-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==4)
-                {
-                    counterK5++;
-                    if(counterK5<11)
-                    {   for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal5[(counterK5-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==5)
-                {
-                    counterK6++;
-                    if(counterK6<11)
-                    {
-                        for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal6[(counterK6-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==6)
-                {
-                    counterK7++;
-                    if(counterK7<11)
-                    {   for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal7[(counterK7-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
-                else if(i_kanal==7)
-                {
-                    counterK8++;
-                    if(counterK8<11)
-                    {   for (int i=0; i<BESAR_PAKET_F; i++){
-                        kanal8[(counterK8-1)*BESAR_PAKET_F+i]=p_data[i];
-                        }
-                    }
-                }
             }//ip
              if(penuh==1)
                 {
-                 //counterCH1=0;
                     flagsave=1;
-                  //qDebug()<<"penuh simpan";
                 }
-             if((flagK1==1&&flagK2==1&&flagK3==1&&flagK4==1)||(flagK5==1&&flagK6==1&&flagK7==1&&flagK8==1))//counterCH1==80)
+             if(cnt_cha[i_kanal]>2560)
              {
-                flagtimestart=1;
-               //Debug()<<"penuh semua, siap kirim";
-                flagK1=0;
-                flagK2=0;
-                flagK3=0;
-                flagK4=0;
-                flagK5=0;
-                flagK6=0;
-                flagK7=0;
-                flagK8=0;
+                   flagtimestart=1;
+                   for(int a; a<JUM_KANAL; a++)
+                   {
+                       qDebug()<<cnt_cha[a];
+                   }
              }
-             if(counterK1==10)
-             {
-                 flagK1=1;
-                 counterK1=0;
-                //Debug()<<"penuh k1";
-             }
-             if(counterK2==10)
-             {
-                 flagK2=1;
-                 counterK2=0;
-                //Debug()<<"penuh k2";
-             }
-             if(counterK3==10)
-             {
-                 flagK3=1;
-                 counterK3=0;
-                //Debug()<<"penuh k3";
-             }
-             if(counterK4==10)
-             {
-                 flagK4=1;
-                 counterK4=0;
-               //qDebug()<<"penuh k4";
-             }
-             if(counterK5==10)
-             {
-                 flagK5=1;
-                 counterK5=0;
-               //qDebug()<<"penuh k5";
-             }
-             if(counterK6==10)
-             {
-                 flagK6=1;
-                 counterK6=0;
-                //Debug()<<"penuh k6";
-             }
-             if(counterK7==10)
-             {
-                 flagK7=1;
-                 counterK7=0;
-               //qDebug()<<"penuh k7";
-             }
-             if(counterK8==10)
-             {
-                 flagK8=1;
-                 counterK8=0;
-               //qDebug()<<"penuh k8";
-             }
+
     }// while
 }//void
 
 
 void data::datamanagement()
 {
+    //int i;
     struct kirim kri;
-   // strcpy(kri.IP, "192.168.0.101");
-   // kri.kanal1 = 2;
-   // memcpy(kri.a, &data_client, sizeof(data_client));
-    memcpy(kri.k1,&kanal1,sizeof(kanal1));
-    memcpy(kri.k2,&kanal2,sizeof(kanal2));
-    memcpy(kri.k3,&kanal3,sizeof(kanal3));
-    memcpy(kri.k4,&kanal4,sizeof(kanal4));
-    memcpy(kri.k5,&kanal5,sizeof(kanal5));
-    memcpy(kri.k6,&kanal6,sizeof(kanal6));
-    memcpy(kri.k7,&kanal7,sizeof(kanal7));
-    memcpy(kri.k8,&kanal8,sizeof(kanal8));
+     memcpy(kri.k1, &data_prekirim[0][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k2, &data_prekirim[1][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k3, &data_prekirim[2][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k4, &data_prekirim[3][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k5, &data_prekirim[4][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k6, &data_prekirim[5][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k7, &data_prekirim[6][2560], 2560 * (sizeof(float)));
+    memcpy(kri.k8, &data_prekirim[7][2560], 2560 * (sizeof(float)));
+//    }
     QByteArray datagrama = QByteArray(static_cast<char*>((void*)&kri), sizeof(kri));
   //qDebug()<<"data siap kirim"<<datagrama.size();
     sendDataClient1(datagrama);
-    memset(kri.k1,0,sizeof(float)*2560);
-    memset(kri.k2,0,sizeof(float)*2560);
-    memset(kri.k3,0,sizeof(float)*2560);
-    memset(kri.k4,0,sizeof(float)*2560);
-    memset(kri.k5,0,sizeof(float)*2560);
-    memset(kri.k6,0,sizeof(float)*2560);
-    memset(kri.k7,0,sizeof(float)*2560);
-    memset(kri.k8,0,sizeof(float)*2560);
+    cnt_cha[0]=0;
+    cnt_cha[1]=0;
+    cnt_cha[2]=0;
+    cnt_cha[3]=0;
+    cnt_cha[4]=0;
+    cnt_cha[5]=0;
+    cnt_cha[6]=0;
+    cnt_cha[7]=0;
+    datagrama.clear();
 }
 
 void data::start_database()
 {
     for(int i =0; i<JUM_KANAL; i++)//8
     {
-      //  qDebug()<<"jumlah data kanal "<< i << "=" <<cnt_ch[i];
+       // qDebug()<<cnt_cha[i];
         if(cnt_ch[i] < spektrum_points)
         {
-           // qDebug()<<cnt_ch[i]<<"data kurang dari spektrum";
             threadku->safe_to_save_ch[i] = 0;
             continue;
         }
@@ -475,6 +378,7 @@ void data::start_database()
         for(int i =0; i<JUM_KANAL; i++)//8
         {
             cnt_ch[i] =0;
+           // cnt_cha[i] =0;
         }
        //Debug()<<"data save ";
 }

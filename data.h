@@ -77,11 +77,18 @@ private:
     int paket_dikirim;
     float *data_save[8];
     float *data_get[8];
+    float *data_prekirim[8];
+    float *data_kirim1[2560];
+    float *data_kirim2[2560];
+    float *data_kirim3[2560];
+    float *data_kirim4[2560];
+    float *data_kirim5[2560];
+    float *data_kirim6[2560];
+    float *data_kirim7[2560];
+    float *data_kirim8[2560];
     float data_client[20480];
-    float cha[20480];
-    QVector <float> *data_simpan;
-    float data_send[256];
     int cnt_ch[8];
+    int cnt_cha[8];
 
     int counterCH1;
     ///
