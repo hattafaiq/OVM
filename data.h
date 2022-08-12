@@ -30,7 +30,7 @@ public:
     void req_UDP();
     virtual ~data();
     unsigned short spsX;
-    int kirim;
+    struct kirim kri;
     void set_memory();
     void free_memory();
     void init_setting(init_setting_k *Temp);
@@ -39,13 +39,13 @@ public:
 
 Q_SIGNALS:
     void closed();
+    void trig_client();
 
 public slots:
     void readyReady(); //(QByteArray datagram);//data tidak mau masuk
     void init_time();
     void refresh_plot();
     void datamanagement();
-   // void datamanagement2();
     void start_database();
     void flagdatabase();
     void flagclient();
@@ -76,20 +76,13 @@ private:
     int period_simpan;
     int spektrum_points;
     int paket_dikirim;
-    float *data_save[8];
-    float *data_get[8];
-    float *data_prekirim[8];
-    float *data_kirim1[2560];
-    float *data_kirim2[2560];
-    float *data_kirim3[2560];
-    float *data_kirim4[2560];
-    float *data_kirim5[2560];
-    float *data_kirim6[2560];
-    float *data_kirim7[2560];
-    float *data_kirim8[2560];
-    float data_client[20480];
-    int cnt_ch[8];
-    int cnt_cha[8];
+    float *data_save[JUM_KANAL];
+    float *data_get[JUM_KANAL];
+    //float *data_prekirim[8];
+    float *data_prekirim[JUM_KANAL];
+    float x1[2560];
+    int cnt_ch[JUM_KANAL];
+    int cnt_cha[JUM_KANAL];
 
     int counterCH1;
     ///
@@ -122,34 +115,6 @@ private:
     int tim_count;
     // inisial data
     double *data_y_voltage[JUM_KANAL];
-    float kanal1[2560];
-    float kanal2[2560];
-    float kanal3[2560];
-    float kanal4[2560];
-    float kanal5[2560];
-    float kanal6[2560];
-    float kanal7[2560];
-    float kanal8[2560];
-    int counterK1;
-    int counterK2;
-    int counterK3;
-    int counterK4;
-    int counterK5;
-    int counterK6;
-    int counterK7;
-    int counterK8;
-    int flagK1;
-    int flagK2;
-    int flagK3;
-    int flagK4;
-    int flagK5;
-    int flagK6;
-    int flagK7;
-    int flagK8;
-    // SQL
-//    QSqlDatabase m_db;
-//    QString simpanaja;
-//    static QList<QWebSocket*> plist;
     threader *threadku;
     database *dbase;
     int count_db;

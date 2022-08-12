@@ -6,7 +6,7 @@
 #include <QHostAddress>
 
 //#define SUMBU_FONT  "Helvetica"
-
+#define set_up          2560
 #define JUM_MODULE      2
 #define JUM_KANAL       8
 
@@ -16,7 +16,7 @@
 #define LEN_DUMMY       5000
 #define SET_CEK         "daunbiru_maumere_01"
 
-#define BESAR_PAKET     1024
+#define BESAR_PAKET     1024 //2048
 #define PAKET_10        2560
 #define PAKET_BUFF      256
 #define BESAR_PAKET_F	(BESAR_PAKET / 4)
@@ -78,14 +78,14 @@ struct kirim
      //char IP[27];
      //unsigned char kanal1;
      //float a[20480];
-    float k1[2560];
-    float k2[2560];
-    float k3[2560];
-    float k4[2560];
-    float k5[2560];
-    float k6[2560];
-    float k7[2560];
-    float k8[2560];
+    float k1[set_up];
+    float k2[set_up];
+    float k3[set_up];
+    float k4[set_up];
+    float k5[set_up];
+    float k6[set_up];
+    float k7[set_up];
+    float k8[set_up];
 };
 
 #endif // SETTING_H

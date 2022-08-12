@@ -68,15 +68,6 @@ void data::free_memory()
         free(data_get[i]);
         free(data_prekirim[i]);
     }
-    for (i=0; i< 2560; i++){
-    free(data_kirim1[i]);
-    free(data_kirim2[i]);
-    free(data_kirim3[i]);
-    free(data_kirim4[i]);
-    free(data_kirim5[i]);
-    free(data_kirim6[i]);
-    free(data_kirim7[i]);
-    free(data_kirim8[i]);}
 }
 void data::cek_settings(init_setting_k *Temp)
 {
@@ -111,6 +102,7 @@ void data::flagdatabase()
 
 void data::flagclient()
 {
+    flagtimestart=1;
     if(flagtimestart==1)
     {
         datamanagement();
@@ -165,7 +157,6 @@ void data::set_memory()
         memset( (char *) data_save[i], 0, ((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)*sizeof(float)));
         data_get[i] = (float *) malloc(MAX_FFT_POINT * sizeof(float));
         memset( (char *) data_get[i], 0, MAX_FFT_POINT * sizeof(float));
-
         data_prekirim[i] = (float *) malloc((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)* sizeof(float));
         memset( (char *) data_prekirim[i], 0, (((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10) * sizeof(float));
     }
@@ -178,11 +169,13 @@ void data::init_time()
     QObject::connect(timer,SIGNAL(timeout()),this, SLOT(refresh_plot()));
     timer->start(Temp->timereq*1100);
     timera = new QTimer(this);
-    QObject::connect(timera,SIGNAL(timeout()),this, SLOT(flagdatabase()));
-    timera->start(Temp->timerdbk*1000);
+    QObject::connect(timera,SIGNAL(timeout()),this, SLOT(start_database()));
+    timera->start(5000);
     TMclient = new QTimer(this);
-    QObject::connect(TMclient,SIGNAL(timeout()),this, SLOT(flagclient()));
-    TMclient->start(Temp->timerclient*1000);
+    QObject::connect(TMclient,SIGNAL(timeout()),this, SLOT(datamanagement()));
+    TMclient->start(1000);
+
+   // QObject::connect(this,SIGNAL(trig_client()),this, SLOT(datamanagement()));
 }
 
 void data::req_UDP()
@@ -228,6 +221,7 @@ void data::readyReady()
          int datasyarat= 2560;
          //int datayangdiharapkan=2048;
          penuh = (cnt_ch[i_kanal]%datasyarat)+1;
+         penuh2 = (cnt_cha[i_kanal]%datasyarat)+1;
 
          int no_module = -1;
 
@@ -240,55 +234,48 @@ void data::readyReady()
              i_kanal = i_kanal+4;
              no_module = 1;
          }
-             if((no_module==0)||(no_module==1))
-             {
-                 for (i=0; i<BESAR_PAKET_F; i++)
-                   {
-                      cnt_ch[i_kanal]++;
-                      data_save[i_kanal][cnt_ch[i_kanal]] = p_data[i];
-                      cnt_cha[i_kanal]++;
-                      data_prekirim[i_kanal][cnt_cha[i_kanal]] = p_data[i];
-                    }
-            }//ip
-             if(penuh==1)
-                {
-                    flagsave=1;
-                }
-             if(cnt_cha[i_kanal]>2560)
-             {
-                 //datamanagement();
-                   flagtimestart=1;
-             }
-
+        for (i=0; i<PAKET_BUFF; i++)
+        {
+          cnt_ch[i_kanal]++;
+          data_save[i_kanal][cnt_ch[i_kanal]] = p_data[i];
+          cnt_cha[i_kanal]++;
+          data_prekirim[i_kanal][cnt_cha[i_kanal]] = p_data[i];
+          //x1[i_kanal][cnt_ch[i_kanal]] = i;
+        }
+        if(penuh2==1)
+        {
+         qDebug()<<cnt_cha[i_kanal];
+//         flagtimestart=1;
+        }
+        if(penuh==1)
+        {
+        qDebug()<<cnt_ch[i_kanal];
+        flagsave=1;
+        }
     }// while
 }//void
 
 
 void data::datamanagement()
 {
-    //int i;
-    struct kirim kri;
-    memcpy(kri.k1, &data_prekirim[0][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k2, &data_prekirim[1][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k3, &data_prekirim[2][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k4, &data_prekirim[3][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k5, &data_prekirim[4][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k6, &data_prekirim[5][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k7, &data_prekirim[6][2560], 2560 * (sizeof(float)));
-    memcpy(kri.k8, &data_prekirim[7][2560], 2560 * (sizeof(float)));
-//    }
+    qDebug()<<QDateTime::currentMSecsSinceEpoch()<<"kemas";
+    memcpy(kri.k1, &data_prekirim[0][0], set_up * (sizeof(float)));
+    memcpy(kri.k2, &data_prekirim[1][0], set_up * (sizeof(float)));
+    memcpy(kri.k3, &data_prekirim[2][0], set_up * (sizeof(float)));
+    memcpy(kri.k4, &data_prekirim[3][0], set_up * (sizeof(float)));
+    memcpy(kri.k5, &data_prekirim[4][0], set_up * (sizeof(float)));
+    memcpy(kri.k6, &data_prekirim[5][0], set_up * (sizeof(float)));
+    memcpy(kri.k7, &data_prekirim[6][0], set_up * (sizeof(float)));
+    memcpy(kri.k8, &data_prekirim[7][0], set_up * (sizeof(float)));
     QByteArray datagrama = QByteArray(static_cast<char*>((void*)&kri), sizeof(kri));
-  //qDebug()<<"data siap kirim"<<datagrama.size();
+
     sendDataClient1(datagrama);
-    cnt_cha[0]=0;
-    cnt_cha[1]=0;
-    cnt_cha[2]=0;
-    cnt_cha[3]=0;
-    cnt_cha[4]=0;
-    cnt_cha[5]=0;
-    cnt_cha[6]=0;
-    cnt_cha[7]=0;
-    datagrama.clear();
+    qDebug()<<QDateTime::currentMSecsSinceEpoch()<<"kirim";
+    for(int i =0; i<JUM_KANAL; i++)//8
+    {
+        cnt_cha[i] =0;
+       // cnt_cha[i] =0;
+    }
 }
 
 void data::start_database()
@@ -342,27 +329,27 @@ void data::processMessage(QByteArray message)
     QWebSocket *C_NewReq = qobject_cast<QWebSocket *>(sender());
        // qDebug()<<message;
 
-        QByteArray ba1;
-        QByteArray bal1;
-        QByteArray unsub;
-        QString unsub_wave1 ="unsub";
-        QString wave1 ="wave1";
-        QString wave2 ="wave2";
-        ba1 += wave1;
-        bal1 += wave2;
-        unsub += unsub_wave1;
+    QByteArray ba1;
+    QByteArray bal1;
+    QByteArray unsub;
+    QString unsub_wave1 ="unsub";
+    QString wave1 ="wave1";
+    QString wave2 ="wave2";
+    ba1 += wave1;
+    bal1 += wave2;
+    unsub += unsub_wave1;
 
-        if((C_NewReq)&&(message==ba1))
-            {
-             Subcribe_wave1.removeOne(C_NewReq);
-             Subcribe_wave1 << C_NewReq;
-             qDebug()<<"req wave 1 dari:"<<C_NewReq->peerAddress().toString();
-            }
-        if((C_NewReq)&&(message==unsub))
-            {
-            Subcribe_wave1.removeOne(C_NewReq);
-            qDebug()<<"unsub scribe dari:"<<C_NewReq->peerAddress().toString();
-            }
+    if((C_NewReq)&&(message==ba1))
+    {
+        Subcribe_wave1.removeOne(C_NewReq);
+        Subcribe_wave1 << C_NewReq;
+        qDebug()<<"req wave 1 dari:"<<C_NewReq->peerAddress().toString();
+    }
+    if((C_NewReq)&&(message==unsub))
+    {
+        Subcribe_wave1.removeOne(C_NewReq);
+        qDebug()<<"unsub scribe dari:"<<C_NewReq->peerAddress().toString();
+    }
 
 }
 
