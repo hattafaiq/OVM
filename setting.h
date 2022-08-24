@@ -86,6 +86,7 @@ struct kirim
     float k6[set_up];
     float k7[set_up];
     float k8[set_up];
+    int x1[2560];
 };
 
 #endif // SETTING_H

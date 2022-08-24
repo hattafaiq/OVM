@@ -67,6 +67,7 @@ void data::free_memory()
         free(data_save[i]);
         free(data_get[i]);
         free(data_prekirim[i]);
+       // free(x1[i]);
     }
 }
 void data::cek_settings(init_setting_k *Temp)
@@ -159,6 +160,8 @@ void data::set_memory()
         memset( (char *) data_get[i], 0, MAX_FFT_POINT * sizeof(float));
         data_prekirim[i] = (float *) malloc((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)* sizeof(float));
         memset( (char *) data_prekirim[i], 0, (((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10) * sizeof(float));
+//        x1[i] = (int *) malloc((((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10)* sizeof(int));
+//        memset( (char *) x1[i], 0, (((2560/BESAR_PAKET_F)*JUM_KANAL)*BESAR_PAKET*Temp->timerdbk*10) * sizeof(int));
     }
 }
 
@@ -240,16 +243,20 @@ void data::readyReady()
           data_save[i_kanal][cnt_ch[i_kanal]] = p_data[i];
           cnt_cha[i_kanal]++;
           data_prekirim[i_kanal][cnt_cha[i_kanal]] = p_data[i];
-          //x1[i_kanal][cnt_ch[i_kanal]] = i;
+          kri.x1[((req%10)*256+i)]=(req%10)*256+i;
+          //qDebug()<<kri.x1[i];
         }
+
+//        qDebug()<<"sample cha"<<cnt_cha[i_kanal];
+//        qDebug()<<"req sample : "<<(req%10)+1;
         if(penuh2==1)
         {
-         qDebug()<<cnt_cha[i_kanal];
+        // qDebug()<<"sample cha"<<cnt_cha[i_kanal];
 //         flagtimestart=1;
         }
         if(penuh==1)
         {
-        qDebug()<<cnt_ch[i_kanal];
+        //qDebug()<<cnt_ch[i_kanal];
         flagsave=1;
         }
     }// while
@@ -259,14 +266,14 @@ void data::readyReady()
 void data::datamanagement()
 {
     qDebug()<<QDateTime::currentMSecsSinceEpoch()<<"kemas";
-    memcpy(kri.k1, &data_prekirim[0][0], set_up * (sizeof(float)));
-    memcpy(kri.k2, &data_prekirim[1][0], set_up * (sizeof(float)));
-    memcpy(kri.k3, &data_prekirim[2][0], set_up * (sizeof(float)));
-    memcpy(kri.k4, &data_prekirim[3][0], set_up * (sizeof(float)));
-    memcpy(kri.k5, &data_prekirim[4][0], set_up * (sizeof(float)));
-    memcpy(kri.k6, &data_prekirim[5][0], set_up * (sizeof(float)));
-    memcpy(kri.k7, &data_prekirim[6][0], set_up * (sizeof(float)));
-    memcpy(kri.k8, &data_prekirim[7][0], set_up * (sizeof(float)));
+    memcpy(kri.k1, &data_prekirim[0][1], set_up * (sizeof(float)));
+    memcpy(kri.k2, &data_prekirim[1][1], set_up * (sizeof(float)));
+    memcpy(kri.k3, &data_prekirim[2][1], set_up * (sizeof(float)));
+    memcpy(kri.k4, &data_prekirim[3][1], set_up * (sizeof(float)));
+    memcpy(kri.k5, &data_prekirim[4][1], set_up * (sizeof(float)));
+    memcpy(kri.k6, &data_prekirim[5][1], set_up * (sizeof(float)));
+    memcpy(kri.k7, &data_prekirim[6][1], set_up * (sizeof(float)));
+    memcpy(kri.k8, &data_prekirim[7][1], set_up * (sizeof(float)));
     QByteArray datagrama = QByteArray(static_cast<char*>((void*)&kri), sizeof(kri));
 
     sendDataClient1(datagrama);

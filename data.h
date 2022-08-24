@@ -80,7 +80,7 @@ private:
     float *data_get[JUM_KANAL];
     //float *data_prekirim[8];
     float *data_prekirim[JUM_KANAL];
-    float x1[2560];
+    int x1[2560];
     int cnt_ch[JUM_KANAL];
     int cnt_cha[JUM_KANAL];
 
